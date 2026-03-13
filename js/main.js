@@ -221,6 +221,28 @@ presupuestoForm.addEventListener('submit', (e) => {
     });
     return;
   }
+
+  // Validación de email: debe tener formato válido con @
+  const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!regexEmail.test(email)) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Email inválido',
+      text: 'Por favor, ingrese un email válido (ejemplo: nombre@dominio.com).',
+    });
+    return;
+  }
+
+  // Validación de teléfono: solo números, espacios, + y -
+  const regexTelefono = /^[\d\s\+\-]+$/;
+  if (!regexTelefono.test(telefono)) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Teléfono inválido',
+      text: 'Por favor, ingrese un teléfono válido (por ejemplo: +54 9 11 1234 5678).',
+    });
+    return;
+  }
   
   const tipoSeleccionado = document.querySelector('input[name="tipo-sitio"]:checked');
   const tipoSitio = preciosSitio[parseInt(tipoSeleccionado.value)];
@@ -267,22 +289,39 @@ let preciosSitio = [];
 let extras = [];
 const URL_PRECIO = "../db/precio.json";
 const URL_EXTRAS = "../db/extras.json";
-function inicializarApp() {
- 
+async function inicializarApp() {
   
-  fetch(URL_PRECIO)
-    .then(response => response.json())
-    .then(data => {
-      preciosSitio = data;
-      generarTiposSitio();
+  // try-catch-finally para el fetch de precios
+  try {
+    const response = await fetch(URL_PRECIO);
+    const data = await response.json();
+    preciosSitio = data;
+    generarTiposSitio();
+  } catch (error) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Error al cargar precios',
+      text: 'No se pudieron cargar los tipos de sitio. Intente recargar la página.',
     });
+  } finally {
+    // Se ejecuta siempre, haya o no error en la carga de precios
+    mostrarListaSitios();
+  }
   
-  fetch(URL_EXTRAS)
-    .then(response => response.json())
-    .then(data => {
-      extras = data;
-      generarExtras();
+  try{
+    const response = await fetch(URL_EXTRAS)
+    const data = await response.json();
+    extras = data;
+    generarExtras();
+  }catch(error){
+    Swal.fire({
+      icon: 'error',
+      title: 'Error al cargar extras',
+      text: 'No se pudieron cargar los extras. Intente recargar la página.',
     });
+  }finally{
+    mostrarListaExtras();
+  }
   
   // Verificamos si venimos de editar un presupuesto del carrito
   cargarPresupuestoEdicion();
